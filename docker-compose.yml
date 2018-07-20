@@ -1,0 +1,26 @@
+version: "3"
+
+services:
+  traefik:
+    image: traefik
+    command:
+      - "--api"
+      - "--docker"
+      - "--docker.swarmMode"
+      - "--docker.watch"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "80:80"
+      - "8080:8080"
+
+  elasticsearch:
+    image: elasticsearch
+    deploy:
+      labels:
+        - "traefik.backend=elasticsearch-cluster"
+        - "traefik.backend.healthcheck.path=/"
+        - "traefik.frontend.rule=PathPrefixStrip: /elasticsearch-cluster"
+        - "traefik.port=9200"
+    environment:
+      ES_JAVA_OPTS: "-Xmx512m -Xms512m"
